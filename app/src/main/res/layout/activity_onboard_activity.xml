@@ -1,0 +1,347 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".Onboard_activity">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:background="@color/splachScreenBackground">
+        <!--        <ImageView-->
+        <!--            android:layout_width="35dp"-->
+        <!--            android:layout_height="35dp"-->
+        <!--            android:scaleType="fitXY"-->
+        <!--            android:src="@drawable/leftarrow"-->
+        <!--            android:layout_gravity="left"-->
+        <!--            android:layout_marginStart="20dp"-->
+        <!--            android:id="@+id/leftarrow"/>-->
+
+        <!--        <com.google.android.material.button.MaterialButton-->
+        <!--            android:layout_width="60dp"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon"-->
+        <!--            app:icon="@drawable/leftarrow"-->
+        <!--            app:iconSize="35dp"-->
+        <!--            app:iconGravity="textStart"-->
+        <!--            app:strokeWidth="0dp"/>-->
+        <ImageButton
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="20dp"
+            android:background="@drawable/leftarrow"
+            android:adjustViewBounds="true"
+            android:id="@+id/home_btn"
+            android:elevation="5dp"/>
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:textSize="20dp"
+            android:text="Let's Get You Onboarded"
+            android:layout_marginStart="10dp"
+            android:id="@+id/action_Bar_Text"/>
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:scaleType="fitXY"
+            android:src="@drawable/logo1"
+            android:layout_gravity="right"
+            android:layout_marginEnd="25dp"
+            android:id="@+id/action_bar_logo"/>
+
+
+    </androidx.appcompat.widget.Toolbar>
+
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent">
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="25dp"
+            android:layout_marginTop="25dp"
+            android:layout_marginBottom="10dp"
+            android:textColor="@color/colorText"
+            android:padding="12dp"
+            android:hint="@string/firstname"
+            android:id="@+id/fname"/>
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="25dp"
+            android:layout_marginVertical="10dp"
+            android:textColor="@color/colorText"
+            android:padding="12dp"
+            android:hint="@string/surname"
+            android:id="@+id/sname"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginHorizontal="25dp"
+            android:layout_marginVertical="0dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/gender"
+                android:textSize="18dp"
+                android:layout_marginEnd="4dp"
+                android:textColor="@color/colorText"
+                android:padding="12dp"
+                android:id="@+id/gender" />
+
+<!--            <com.google.android.material.button.MaterialButtonToggleGroup-->
+<!--                android:id="@+id/toggleButtonGroup"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="match_parent"-->
+<!--                app:singleSelection="true"-->
+<!--                app:selectionRequired="true"-->
+<!--                app:checkedButton="@id/btn_female"-->
+<!--                >-->
+
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:singleSelection="true">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_female"
+                android:layout_width="0dp"
+                android:layout_weight="2"
+                android:layout_height="wrap_content"
+                android:textSize="15dp"
+                android:textColor="@color/colorText"
+                app:strokeWidth="2dp"
+                android:text="@string/female"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon"
+                app:icon="@drawable/female"
+                app:iconSize="20dp"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="8dp"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_male"
+                android:layout_width="0dp"
+                android:layout_weight="2"
+                android:layout_height="wrap_content"
+                android:textSize="15dp"
+                android:textColor="@color/colorText"
+                app:strokeWidth="2dp"
+                android:text="@string/male"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon"
+                app:icon="@drawable/male"
+                app:iconSize="15dp"
+                android:layout_marginStart="2dp" />
+
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+
+        </LinearLayout>
+
+        <EditText
+            android:id="@+id/phone_number"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="25dp"
+            android:layout_marginVertical="10dp"
+            android:hint="@string/phonenumber"
+            android:padding="12dp"
+            android:textColor="@color/colorText" />
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="25dp"
+            android:layout_marginVertical="10dp"
+            android:textColor="@color/colorText"
+            android:padding="12dp"
+            android:hint="@string/email"
+            android:id="@+id/email"/>
+
+        <!--                android:contentDescription="@string/content_description_media"-->
+
+        <!--    <ImageView-->
+        <!--        android:id="@+id/ivImage"-->
+        <!--        android:layout_width="match_parent"-->
+        <!--        android:layout_marginHorizontal="50dp"-->
+        <!--        android:layout_marginVertical="20dp"-->
+        <!--        android:layout_height="200dp"-->
+        <!--        android:layout_centerHorizontal="true"-->
+        <!--        android:contentDescription="@string/app_name"-->
+        <!--        android:src="@drawable/plus"-->
+        <!--        android:background="@color/colorBackground"/>-->
+
+        <!--    <com.google.android.material.button.MaterialButton-->
+        <!--        android:id="@+id/image_btn"-->
+        <!--        android:layout_width="match_parent"-->
+        <!--        android:layout_marginHorizontal="50dp"-->
+        <!--        android:layout_marginVertical="20dp"-->
+        <!--        android:layout_height="200dp"-->
+        <!--        android:background="@color/colorBackground"-->
+        <!--        style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon"-->
+        <!--        app:icon="@drawable/plus"-->
+        <!--        app:iconSize="200dp"/>-->
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="25dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:background="@color/colorBackground">
+
+                <!-- Title, secondary and supporting text -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Picture Upload"
+                    android:textSize="20dp"
+                    android:textAlignment="center"
+                    android:padding="10dp"
+                    android:textStyle="bold"
+                    android:textAppearance="?attr/textAppearanceHeadline6"
+                    />
+                <RelativeLayout
+                    android:id="@+id/imagePreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:orientation="vertical"
+                    android:padding="0dp" >
+
+                    <ImageButton
+                        android:layout_centerInParent="true"
+                        android:id="@+id/image_btn"
+                        android:layout_width="130dp"
+                        android:layout_height="150dp"
+                        android:layout_gravity="center"
+                        android:background="@color/white"
+                        app:srcCompat="@drawable/plus"
+                        android:adjustViewBounds="true"
+                        android:scaleType="fitCenter"
+                        android:padding="30dp"
+                        />
+
+<!--                    <Button-->
+<!--                        android:id="@+id/searchGroupButton"-->
+<!--                        android:layout_width="20dp"-->
+<!--                        android:layout_height="20dp"-->
+<!--                        android:layout_alignParentTop="true"-->
+<!--                        android:layout_marginLeft="94dp"-->
+<!--                        android:layout_marginTop="15dp"-->
+<!--                        android:background="@drawable/plus"-->
+<!--                        android:textColor="#fff" />-->
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/cancel_btn"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        app:icon="@drawable/cancel"
+                        app:iconTint="@color/red"
+                        app:iconSize="15dp"
+                        android:layout_alignParentRight="true"
+                        android:layout_marginRight="98dp"
+                        android:layout_marginTop="10dp"
+                        android:visibility="invisible"
+                        app:iconPadding="0dp"
+                        android:insetLeft="0dp"
+                        android:insetTop="0dp"
+                        android:insetRight="0dp"
+                        android:insetBottom="0dp"
+                        style="@style/Widget.MaterialComponents.ExtendedFloatingActionButton"
+                        android:backgroundTint="@color/white"
+                        app:cornerRadius="28dp"
+                        app:iconGravity="textEnd"
+                        />
+
+<!--                    <ImageButton-->
+<!--                        android:layout_centerInParent="true"-->
+<!--                        android:id="@+id/searchGroupButton"-->
+<!--                        android:layout_width="150dp"-->
+<!--                        android:layout_height="120dp"-->
+<!--                        android:layout_gravity="center"-->
+<!--                        android:background="@color/white"-->
+<!--                        app:srcCompat="@drawable/plus"-->
+<!--                        android:adjustViewBounds="true"-->
+<!--                        android:scaleType="fitCenter"-->
+<!--                        android:padding="30dp"-->
+<!--                        />-->
+
+                </RelativeLayout>
+
+<!--                <ImageButton-->
+<!--                    android:layout_centerInParent="true"-->
+<!--                    android:id="@+id/image_btn"-->
+<!--                    android:layout_width="100dp"-->
+<!--                    android:layout_height="120dp"-->
+<!--                    android:layout_gravity="center"-->
+<!--                    android:background="@color/white"-->
+<!--                    app:srcCompat="@drawable/plus"-->
+<!--                    android:adjustViewBounds="true"-->
+<!--                    android:scaleType="fitCenter"-->
+<!--                    android:padding="30dp"-->
+<!--                    />-->
+
+
+                <!-- Media -->
+                <!--            style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon"-->
+                <!--            <ImageView-->
+                <!--                android:layout_width="match_parent"-->
+                <!--                android:layout_height="130dp"-->
+                <!--                app:srcCompat="@drawable/plus"-->
+                <!--                android:scaleType="fitCenter"-->
+                <!--                android:layout_marginHorizontal="100dp"-->
+                <!--                android:padding="10dp" />-->
+
+                <!-- Title, secondary and supporting text -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="Tap on the plus icon to add your picture."
+                    android:textSize="15dp"
+                    android:textAlignment="center"
+                    android:padding="16dp"
+                    android:textAppearance="?attr/textAppearanceHeadline6" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/submit_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/submit_txt"
+            android:textSize="20dp"
+            android:layout_marginHorizontal="25dp"
+            style="@style/Widget.MaterialComponents.Button"
+            android:background="@color/colorBackground"
+            app:elevation="5dp"
+            android:textAllCaps="false"/>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
