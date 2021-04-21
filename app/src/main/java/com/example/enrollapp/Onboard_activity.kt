@@ -1,5 +1,6 @@
 package com.example.enrollapp
 
+import android.app.ProgressDialog
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -14,29 +15,26 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import com.afollestad.materialdialogs.MaterialDialog
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
-import java.io.OutputStreamWriter
+import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
 
 
 class Onboard_activity : AppCompatActivity() {
-    //lateinit var imageView: ImageView
-    //private val pickImage = 1
-    //private lateinit var yourBitmap: Bitmap
-    private lateinit var mPhotoFile: File
+
 
 
     //Our variables
-    private var mImageView: ImageButton? = null
     private var mUri: Uri? = null
     private var textFirstName: String = ""
     private var textSurname: String = ""
     private var textEmail: String = ""
     private var textPhoneNumber: String = ""
     private var gender: String = ""
+    private var imageUri: Uri? = null
+    private var takenImage: Bitmap? = null
+    private lateinit var mPhotoFile: File
+    private lateinit var currentPhotoPath: String
 
 
     //Our widgets
@@ -50,15 +48,17 @@ class Onboard_activity : AppCompatActivity() {
     private lateinit var etSurname: EditText
     private lateinit var etEmail: EditText
     private lateinit var etPhoneNumber: EditText
-//    private lateinit var toggleButton: ToggleButton
+    private lateinit var warningText: TextView
 
 
-    //Our constants
-    private val OPERATION_CAPTURE_PHOTO = 1
+    //constants
+    private val PICK_IMAGE = 100
+    private val REQUEST_IMAGE_CAPTURE = 1
+
 
     private fun initializeWidgets() {
         btnCapture = findViewById(R.id.image_btn)
-       // mImageView = findViewById(R.id.image_btn)
+        warningText = findViewById(R.id.warning_log)
         btnHome = findViewById(R.id.home_btn)
         btnSubmit = findViewById(R.id.submit_btn)
         btnFemale = findViewById(R.id.btn_female)
@@ -68,7 +68,6 @@ class Onboard_activity : AppCompatActivity() {
         etPhoneNumber = findViewById(R.id.phone_number)
         etEmail = findViewById(R.id.email)
         btnCancel = findViewById(R.id.cancel_btn)
-//        toggleButton = findViewById(R.id.toggle_button_group)
     }
 
     private fun showToast(str: String) {
@@ -79,11 +78,6 @@ class Onboard_activity : AppCompatActivity() {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_onboard_activity)
-
-
-
-
-
 
 //        if(ActivityCompat.checkSelfPermission(this, android.Manifest.permission.READ_PHONE_STATE)!=PackageManager.PERMISSION_GRANTED)
 //            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.READ_PHONE_STATE), 111)
@@ -99,26 +93,69 @@ class Onboard_activity : AppCompatActivity() {
 
 
         supportActionBar?.apply {
-            // documentation source developer.android.com
-            // Set whether to include the application home affordance in the
-            // action bar. Home is presented as either an activity icon or logo.
-
+            // Set whether to include the application home affordance in the action bar.
             setDisplayShowHomeEnabled(true)
-
-            // Set whether to display the activity logo rather than the
-            // activity icon. A logo is often a wider, more detailed image.
+            // Set whether to display the activity logo rather than the activity icon. A logo is often a wider, more detailed image.
             setHomeAsUpIndicator(R.drawable.leftarrow)
-
             // Set the logo to display in the 'home' section of the action bar.
             setLogo(R.drawable.logo1)
-
         }
-//         this event will enable the back
-//         function to the button on press
     }
 
-    private val REQUEST_IMAGE_CAPTURE = 1
-    private lateinit var currentPhotoPath: String
+    private fun captureButtonStateChange(padding: Int, view: Int) {
+        btnCapture.setPadding(padding, padding, padding, padding)
+        btnCancel.visibility = view
+    }
+
+    private fun setEditText(){
+        etFirstName.text.clear()
+        etSurname.text.clear()
+        etEmail.text.clear()
+        etPhoneNumber.text.clear()
+        gender = "gender"
+        btnCapture.setImageResource(R.drawable.plus)
+        captureButtonStateChange(80,4)
+        setVariables()
+    }
+
+    private fun setVariables(){
+        textFirstName = etFirstName.text.toString()
+        textSurname = etSurname.text.toString()
+        textEmail = etEmail.text.toString()
+        textPhoneNumber = etPhoneNumber.text.toString()
+        gender = gender
+    }
+
+    private fun validatorCheck(): Boolean {
+        setVariables()
+        var validator = Validator()
+        return (validator.isNameValid(textFirstName)
+                && validator.isNameValid(textSurname)
+                && validator.isEmailValid(textEmail)
+                && validator.isGenderValid(gender)
+                && validator.isNumberValid(textPhoneNumber))
+
+    }
+
+    private fun saveToFile(fileName: String): Boolean {
+        try {
+            val fileOutputStream: FileOutputStream =
+                openFileOutput("$fileName.txt", Context.MODE_PRIVATE)
+            val outputWriter = OutputStreamWriter(fileOutputStream)
+            outputWriter.write("takenImage: $takenImage")
+            outputWriter.append("\n mUri: $mUri")
+            outputWriter.append("\n textFirstName: $textFirstName")
+            outputWriter.append("\n textSurname: $textSurname")
+            outputWriter.append("\n textEmail: $textEmail")
+            outputWriter.append("\n textPhoneNumber: $textPhoneNumber")
+            outputWriter.append("\n gender: $gender")
+            outputWriter.close()
+            return true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return false
+        }
+    }
 
     @Throws(IOException::class)
     private fun createImageFile(): File {
@@ -136,15 +173,10 @@ class Onboard_activity : AppCompatActivity() {
         }
     }
 
-
-
-    private val pickImage = 100
-
     private fun choosePictureIntent() {
-
         val gallery = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI)
         try {
-            startActivityForResult(gallery, pickImage)
+            startActivityForResult(gallery, PICK_IMAGE)
         } catch (e: ActivityNotFoundException) {
             // display error state to the user
             val dialog = MaterialDialog(this)
@@ -184,24 +216,28 @@ class Onboard_activity : AppCompatActivity() {
             }
         }
     }
-    private var imageUri: Uri? = null
+
+
+
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            //val imageBitmap = data?.extras?.get("data") as Bitmap
-            val takenImage = BitmapFactory.decodeFile(mPhotoFile.absolutePath)
-//            imageView.setImageBitmap(imageBitmap)
-            btnCapture.setImageBitmap(takenImage)
+        if (resultCode == RESULT_OK) {
+            if (requestCode == REQUEST_IMAGE_CAPTURE) {
+                takenImage = BitmapFactory.decodeFile(mPhotoFile.absolutePath)
+                imageUri = null
+                btnCapture.setImageBitmap(takenImage)
+            } else if (requestCode == PICK_IMAGE) {
+                takenImage = null
+                imageUri = data?.data
+                btnCapture.setImageURI(imageUri)
+            }
+            captureButtonStateChange(0,0)
         }
-        if (resultCode == RESULT_OK && requestCode == pickImage) {
-            imageUri = data?.data
-            btnCapture.setImageURI(imageUri)
-        }
-        btnCapture.setPadding(0,0,0,0)
-        btnCancel.visibility =View.VISIBLE
+
     }
 
-    val listener = View.OnClickListener { view ->
+    private val listener = View.OnClickListener { view ->
         when (view.getId()) {
             R.id.home_btn -> {
                 val dialog = MaterialDialog(this)
@@ -219,29 +255,27 @@ class Onboard_activity : AppCompatActivity() {
         }
     }
 
-    val cancelListener = View.OnClickListener { view ->
+    private val cancelListener = View.OnClickListener { view ->
         when (view.getId()) {
             R.id.cancel_btn -> {
                 btnCapture.setImageResource(R.drawable.plus)
-                btnCapture.setPadding(80,80,80,80)
-                btnCancel.visibility =View.INVISIBLE
+                captureButtonStateChange(80,4)
             }
         }
     }
 
-    val femaleListener = View.OnClickListener { view ->
+    private val femaleListener = View.OnClickListener { view ->
         when (view.getId()) {
             R.id.btn_female -> {
                 gender = "female"
             }
         }
     }
-    private var count: Int = 0
-    val captureListener = View.OnClickListener { view ->
+
+    private val captureListener = View.OnClickListener { view ->
         when (view.getId()) {
             R.id.image_btn -> {
-                val dialog = MaterialDialog(this)
-                    .message(text = "Please select one")
+                val dialog = MaterialDialog(this).message(text = "Please select one")
                 dialog.show()
 
                 dialog.positiveButton(text = "Select Picture") { dialog ->
@@ -250,13 +284,11 @@ class Onboard_activity : AppCompatActivity() {
                 dialog.negativeButton(text = "Take Picture") { dialog ->
                     dispatchTakePictureIntent()
                 }
-
-                //dispatchTakePictureIntent()
             }
         }
     }
 
-    val maleListener = View.OnClickListener { view ->
+    private val maleListener = View.OnClickListener { view ->
         when (view.getId()) {
             R.id.btn_male -> {
                 gender = "male"
@@ -264,50 +296,38 @@ class Onboard_activity : AppCompatActivity() {
         }
     }
 
-    val EMAILPATTERN = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+"
-    val PHONENUMBERPATTERN = "^(\\+91[\\-\\s]?)?[0]?(91)?[789]\\d{9}\$"
 
-    fun validator (pattern: String, textInput: String) {
-        if (textInput.isEmpty()) {
-            Toast.makeText(applicationContext, "pls input", Toast.LENGTH_SHORT).show()
-        }
-        else {
-            if (!(textInput.trim { it <= ' ' }.matches(pattern.toRegex()))) {
-                Toast.makeText(applicationContext, "Invalid input", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-
-    val submitListener = View.OnClickListener { view ->
+    private val submitListener = View.OnClickListener { view ->
         when (view.getId()) {
             R.id.submit_btn -> {
-                textFirstName = etFirstName.text.toString()
-                textSurname = etSurname.text.toString()
-                textEmail = etEmail.text.toString()
-                textPhoneNumber = etPhoneNumber.text.toString()
+                if (validatorCheck())
+                {
+                    var user = User(
+                        mUri = mUri, takenImage = takenImage,
+                        textFirstName = textFirstName, textSurname = textSurname,
+                        textEmail = textEmail, textPhoneNumber = textPhoneNumber, gender = gender
+                    )
 
-//TODO: create user data class and user object from that class and make these outputs as properties of each person. Save people object
-                try {
-                    val fileOutputStream: FileOutputStream =
-                        openFileOutput("mytextfile.txt", Context.MODE_PRIVATE)
-                    val outputWriter = OutputStreamWriter(fileOutputStream)
-                    outputWriter.write(textSurname)
-                    outputWriter.close()
-                    //display file saved message
-                    Toast.makeText(baseContext, "File saved successfully!", Toast.LENGTH_SHORT)
-                        .show()
-                } catch (e: Exception) {
-                    e.printStackTrace()
+                    if(saveToFile("myEnrollFile")){
+                        warningText.text = "File saved successfully!"
+//                        val dialog = MaterialDialog(this).title(text = "Exit")
+//                            .message(text = "gender $gender \n firstname $textFirstName \n surname $textSurname \n email $textEmail \n phone number $textPhoneNumber")
+//                        dialog.show()
+//                        setEditText()
+                        val progressDialog = ProgressDialog(this@Onboard_activity)
+                        progressDialog.setTitle("SUBMITTING")
+                        progressDialog.show()
+
+                    }else{
+                        val dialog = MaterialDialog(this).title(text = "Exit")
+                            .message(text = "unable to submit")
+                    }
                 }
-                val dialog = MaterialDialog(this)
-                    .title(text = "Exit")
-                    .message(text = "gender $gender \n firstname $textFirstName \n surname $textSurname \n email $textEmail \n phone number $textPhoneNumber")
-                dialog.show()
+                else{
+                    val dialog = MaterialDialog(this).title(text = "Error")
+                        .message(text = "All fields required! Please recheck entries")
+                }
             }
         }
     }
-
-
-
 }
