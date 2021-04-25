@@ -16,7 +16,7 @@ class User {
     private var textEmail: String = ""
     private var textPhoneNumber: String = ""
     private var gender: String = ""
-    private var takenImage: Bitmap? = null
+    var takenImage: Bitmap? = null
 
 
 

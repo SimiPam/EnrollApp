@@ -1,21 +1,27 @@
 package com.example.enrollapp
 
-import android.app.ProgressDialog
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.os.AsyncTask
 import android.os.Bundle
 import android.os.Environment
+import android.os.Handler
 import android.provider.MediaStore
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import com.afollestad.materialdialogs.MaterialDialog
-import java.io.*
+import com.example.enrollapp.uitel.LoadingBar
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.OutputStreamWriter
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -23,8 +29,7 @@ import java.util.*
 class Onboard_activity : AppCompatActivity() {
 
 
-
-    //Our variables
+    // variables
     private var mUri: Uri? = null
     private var textFirstName: String = ""
     private var textSurname: String = ""
@@ -37,7 +42,7 @@ class Onboard_activity : AppCompatActivity() {
     private lateinit var currentPhotoPath: String
 
 
-    //Our widgets
+    // widgets
     private lateinit var btnCapture: ImageButton
     private lateinit var btnHome: ImageButton
     private lateinit var btnSubmit: Button
@@ -70,9 +75,10 @@ class Onboard_activity : AppCompatActivity() {
         btnCancel = findViewById(R.id.cancel_btn)
     }
 
-    private fun showToast(str: String) {
+    fun showToast(str: String) {
         Toast.makeText(this, str, Toast.LENGTH_SHORT).show()
     }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -91,7 +97,6 @@ class Onboard_activity : AppCompatActivity() {
         btnCapture.setOnClickListener(captureListener)
         btnCancel.setOnClickListener(cancelListener)
 
-
         supportActionBar?.apply {
             // Set whether to include the application home affordance in the action bar.
             setDisplayShowHomeEnabled(true)
@@ -102,23 +107,72 @@ class Onboard_activity : AppCompatActivity() {
         }
     }
 
-    private fun captureButtonStateChange(padding: Int, view: Int) {
+    inner class MyAsyncTask : AsyncTask<String, Int, Boolean>() {
+
+        override fun onPreExecute() {
+            super.onPreExecute()
+            showToast("$textFirstName")
+            LoadingBar(this@Onboard_activity).startLoading()
+        }
+
+        override fun doInBackground(vararg params: String?): Boolean {
+            try {
+                val fileOutputStream: FileOutputStream =
+                    openFileOutput("$params.txt", Context.MODE_PRIVATE)
+                val outputWriter = OutputStreamWriter(fileOutputStream)
+                outputWriter.write("takenImage: $takenImage")
+                outputWriter.append("\n mUri: $mUri")
+                outputWriter.append("\n textFirstName: $textFirstName")
+                outputWriter.append("\n textSurname: $textSurname")
+                outputWriter.append("\n textEmail: $textEmail")
+                outputWriter.append("\n textPhoneNumber: $textPhoneNumber")
+                outputWriter.append("\n gender: $gender")
+                outputWriter.close()
+
+                return true
+            } catch (e: Exception) {
+                e.printStackTrace()
+                return false
+            }
+        }
+
+        override fun onPostExecute(result: Boolean?) {
+            super.onPostExecute(result)
+
+            val loading = LoadingBar(this@Onboard_activity)
+            loading.isSuccess()
+            val handler = Handler()
+            handler.postDelayed({
+                loading.finalScreen()
+                val inflater: LayoutInflater = getLayoutInflater()
+                val view: View = inflater.inflate(R.layout.success_screen, null)
+                var  proceedBtn: Button = view.findViewById(R.id.proced_btn)
+                proceedBtn.setOnClickListener {
+                    setEditText()
+                    loading.isDismiss()
+                }
+            }, 5000)
+        }
+    }//end inner class
+
+
+        private fun captureButtonStateChange(padding: Int, view: Int) {
         btnCapture.setPadding(padding, padding, padding, padding)
         btnCancel.visibility = view
     }
 
-    private fun setEditText(){
+    private fun setEditText() {
         etFirstName.text.clear()
         etSurname.text.clear()
         etEmail.text.clear()
         etPhoneNumber.text.clear()
         gender = "gender"
         btnCapture.setImageResource(R.drawable.plus)
-        captureButtonStateChange(80,4)
+        captureButtonStateChange(80, 4)
         setVariables()
     }
 
-    private fun setVariables(){
+    private fun setVariables() {
         textFirstName = etFirstName.text.toString()
         textSurname = etSurname.text.toString()
         textEmail = etEmail.text.toString()
@@ -137,25 +191,6 @@ class Onboard_activity : AppCompatActivity() {
 
     }
 
-    private fun saveToFile(fileName: String): Boolean {
-        try {
-            val fileOutputStream: FileOutputStream =
-                openFileOutput("$fileName.txt", Context.MODE_PRIVATE)
-            val outputWriter = OutputStreamWriter(fileOutputStream)
-            outputWriter.write("takenImage: $takenImage")
-            outputWriter.append("\n mUri: $mUri")
-            outputWriter.append("\n textFirstName: $textFirstName")
-            outputWriter.append("\n textSurname: $textSurname")
-            outputWriter.append("\n textEmail: $textEmail")
-            outputWriter.append("\n textPhoneNumber: $textPhoneNumber")
-            outputWriter.append("\n gender: $gender")
-            outputWriter.close()
-            return true
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return false
-        }
-    }
 
     @Throws(IOException::class)
     private fun createImageFile(): File {
@@ -218,8 +253,6 @@ class Onboard_activity : AppCompatActivity() {
     }
 
 
-
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == RESULT_OK) {
@@ -232,7 +265,7 @@ class Onboard_activity : AppCompatActivity() {
                 imageUri = data?.data
                 btnCapture.setImageURI(imageUri)
             }
-            captureButtonStateChange(0,0)
+            captureButtonStateChange(0, 0)
         }
 
     }
@@ -259,7 +292,7 @@ class Onboard_activity : AppCompatActivity() {
         when (view.getId()) {
             R.id.cancel_btn -> {
                 btnCapture.setImageResource(R.drawable.plus)
-                captureButtonStateChange(80,4)
+                captureButtonStateChange(80, 4)
             }
         }
     }
@@ -300,34 +333,20 @@ class Onboard_activity : AppCompatActivity() {
     private val submitListener = View.OnClickListener { view ->
         when (view.getId()) {
             R.id.submit_btn -> {
-                if (validatorCheck())
-                {
+                if (validatorCheck()) {
                     var user = User(
                         mUri = mUri, takenImage = takenImage,
                         textFirstName = textFirstName, textSurname = textSurname,
                         textEmail = textEmail, textPhoneNumber = textPhoneNumber, gender = gender
                     )
 
-                    if(saveToFile("myEnrollFile")){
-                        warningText.text = "File saved successfully!"
-//                        val dialog = MaterialDialog(this).title(text = "Exit")
-//                            .message(text = "gender $gender \n firstname $textFirstName \n surname $textSurname \n email $textEmail \n phone number $textPhoneNumber")
-//                        dialog.show()
-//                        setEditText()
-                        val progressDialog = ProgressDialog(this@Onboard_activity)
-                        progressDialog.setTitle("SUBMITTING")
-                        progressDialog.show()
-
-                    }else{
-                        val dialog = MaterialDialog(this).title(text = "Exit")
-                            .message(text = "unable to submit")
-                    }
-                }
-                else{
+                    val task = MyAsyncTask()
+                    task.execute("myEnrollFile")
+                } else {
                     val dialog = MaterialDialog(this).title(text = "Error")
                         .message(text = "All fields required! Please recheck entries")
                 }
             }
         }
     }
-}
+}// onboard class end
