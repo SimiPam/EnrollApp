@@ -357,6 +357,20 @@
 
         </com.google.android.material.card.MaterialCardView>
 
+<!--        <TextView-->
+<!--            android:id="@+id/warning_log"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:textSize="15dp"-->
+<!--            android:textAlignment="center"-->
+<!--            android:padding="8dp"-->
+<!--            android:textColor="@color/red"-->
+<!--            android:layout_margin="15dp"-->
+<!--            android:visibility="gone"-->
+<!--            android:textAppearance="?attr/textAppearanceHeadline6"-->
+<!--            app:layout_constraintTop_toBottomOf="@+id/card"-->
+<!--            app:layout_constraintEnd_toEndOf="parent"-->
+<!--            app:layout_constraintStart_toStartOf="parent"/>-->
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/submit_btn"
@@ -373,19 +387,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"/>
 
-        <TextView
-            android:id="@+id/warning_log"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="15dp"
-            android:textAlignment="center"
-            android:padding="8dp"
-            android:textColor="@color/red"
-            android:layout_margin="15dp"
-            android:textAppearance="?attr/textAppearanceHeadline6"
-            app:layout_constraintTop_toBottomOf="@+id/submit_btn"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"/>
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>

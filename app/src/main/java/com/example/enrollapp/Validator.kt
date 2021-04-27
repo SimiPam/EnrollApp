@@ -26,4 +26,6 @@ class Validator {
      fun isGenderValid(gender: String): Boolean {
         return (gender != "gender")
     }
+
+    private fun isInteger(str: String?) = str?.toIntOrNull()?.let {  true } ?:  false
 }

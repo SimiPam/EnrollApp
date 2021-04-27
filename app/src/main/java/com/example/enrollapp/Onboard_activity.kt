@@ -11,13 +11,20 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.provider.MediaStore
+import android.text.Html
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.*
+import android.widget.Button
+import android.widget.EditText
+import android.widget.ImageButton
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import com.afollestad.materialdialogs.MaterialDialog
+import com.amazonaws.auth.BasicAWSCredentials
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver
 import com.example.enrollapp.uitel.LoadingBar
+import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -38,9 +45,12 @@ class Onboard_activity : AppCompatActivity() {
     private var gender: String = ""
     private var imageUri: Uri? = null
     private var takenImage: Bitmap? = null
+    private var mTakenImage: String? = null
     private lateinit var mPhotoFile: File
     private lateinit var currentPhotoPath: String
-
+    private lateinit var currentFilePath: String
+    val constants = Constants()
+    private var fileUri: Uri? = null
 
     // widgets
     private lateinit var btnCapture: ImageButton
@@ -53,17 +63,10 @@ class Onboard_activity : AppCompatActivity() {
     private lateinit var etSurname: EditText
     private lateinit var etEmail: EditText
     private lateinit var etPhoneNumber: EditText
-    private lateinit var warningText: TextView
-
-
-    //constants
-    private val PICK_IMAGE = 100
-    private val REQUEST_IMAGE_CAPTURE = 1
 
 
     private fun initializeWidgets() {
         btnCapture = findViewById(R.id.image_btn)
-        warningText = findViewById(R.id.warning_log)
         btnHome = findViewById(R.id.home_btn)
         btnSubmit = findViewById(R.id.submit_btn)
         btnFemale = findViewById(R.id.btn_female)
@@ -79,16 +82,14 @@ class Onboard_activity : AppCompatActivity() {
         Toast.makeText(this, str, Toast.LENGTH_SHORT).show()
     }
 
+    //val imageUploadObserver = SingleLiveEvent<UploadResult>()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_onboard_activity)
 
-//        if(ActivityCompat.checkSelfPermission(this, android.Manifest.permission.READ_PHONE_STATE)!=PackageManager.PERMISSION_GRANTED)
-//            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.READ_PHONE_STATE), 111)
-//        else
-//            getTelephonyDetail()
         initializeWidgets()
         btnHome.setOnClickListener(listener)
         btnSubmit.setOnClickListener(submitListener)
@@ -105,58 +106,11 @@ class Onboard_activity : AppCompatActivity() {
             // Set the logo to display in the 'home' section of the action bar.
             setLogo(R.drawable.logo1)
         }
+
+
     }
 
-    inner class MyAsyncTask : AsyncTask<String, Int, Boolean>() {
-
-        override fun onPreExecute() {
-            super.onPreExecute()
-            showToast("$textFirstName")
-            LoadingBar(this@Onboard_activity).startLoading()
-        }
-
-        override fun doInBackground(vararg params: String?): Boolean {
-            try {
-                val fileOutputStream: FileOutputStream =
-                    openFileOutput("$params.txt", Context.MODE_PRIVATE)
-                val outputWriter = OutputStreamWriter(fileOutputStream)
-                outputWriter.write("takenImage: $takenImage")
-                outputWriter.append("\n mUri: $mUri")
-                outputWriter.append("\n textFirstName: $textFirstName")
-                outputWriter.append("\n textSurname: $textSurname")
-                outputWriter.append("\n textEmail: $textEmail")
-                outputWriter.append("\n textPhoneNumber: $textPhoneNumber")
-                outputWriter.append("\n gender: $gender")
-                outputWriter.close()
-
-                return true
-            } catch (e: Exception) {
-                e.printStackTrace()
-                return false
-            }
-        }
-
-        override fun onPostExecute(result: Boolean?) {
-            super.onPostExecute(result)
-
-            val loading = LoadingBar(this@Onboard_activity)
-            loading.isSuccess()
-            val handler = Handler()
-            handler.postDelayed({
-                loading.finalScreen()
-                val inflater: LayoutInflater = getLayoutInflater()
-                val view: View = inflater.inflate(R.layout.success_screen, null)
-                var  proceedBtn: Button = view.findViewById(R.id.proced_btn)
-                proceedBtn.setOnClickListener {
-                    setEditText()
-                    loading.isDismiss()
-                }
-            }, 5000)
-        }
-    }//end inner class
-
-
-        private fun captureButtonStateChange(padding: Int, view: Int) {
+    private fun captureButtonStateChange(padding: Int, view: Int) {
         btnCapture.setPadding(padding, padding, padding, padding)
         btnCancel.visibility = view
     }
@@ -191,7 +145,6 @@ class Onboard_activity : AppCompatActivity() {
 
     }
 
-
     @Throws(IOException::class)
     private fun createImageFile(): File {
         // Create an image file name
@@ -204,23 +157,9 @@ class Onboard_activity : AppCompatActivity() {
         ).apply {
             // Save a file: path for use with ACTION_VIEW intents
             currentPhotoPath = absolutePath
-            showToast("$currentPhotoPath")
+//            showToast ("$currentPhotoPath")
         }
     }
-
-    private fun choosePictureIntent() {
-        val gallery = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI)
-        try {
-            startActivityForResult(gallery, PICK_IMAGE)
-        } catch (e: ActivityNotFoundException) {
-            // display error state to the user
-            val dialog = MaterialDialog(this)
-                .title(text = "Gege")
-                .message(text = "Nothing is happening o")
-            dialog.show()
-        }
-    }
-
 
     private fun dispatchTakePictureIntent() {
         Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
@@ -246,23 +185,38 @@ class Onboard_activity : AppCompatActivity() {
                         it
                     )
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-                    startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
+                    startActivityForResult(takePictureIntent, constants.REQUEST_IMAGE_CAPTURE)
                 }
             }
         }
     }
 
+    private fun choosePictureIntent() {
+        val gallery = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI)
+        try {
+            startActivityForResult(gallery, constants.PICK_IMAGE)
+        } catch (e: ActivityNotFoundException) {
+            // display error state to the user
+            val dialog = MaterialDialog(this)
+                .title(text = "Gege")
+                .message(text = "Nothing is happening o")
+            dialog.show()
+        }
+    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == RESULT_OK) {
-            if (requestCode == REQUEST_IMAGE_CAPTURE) {
+            if (requestCode == constants.REQUEST_IMAGE_CAPTURE) {
+                mTakenImage = mPhotoFile.absolutePath
                 takenImage = BitmapFactory.decodeFile(mPhotoFile.absolutePath)
-                imageUri = null
+
                 btnCapture.setImageBitmap(takenImage)
-            } else if (requestCode == PICK_IMAGE) {
-                takenImage = null
+//                showToast(mTakenImage.toString())
+            } else if (requestCode == constants.PICK_IMAGE) {
+
                 imageUri = data?.data
+//                showToast(imageUri.toString())
                 btnCapture.setImageURI(imageUri)
             }
             captureButtonStateChange(0, 0)
@@ -330,23 +284,129 @@ class Onboard_activity : AppCompatActivity() {
     }
 
 
+
+
+    private fun writeToFile(dstFile: File): Boolean {
+        try {
+            val fileOutputStream: FileOutputStream =
+                FileOutputStream(dstFile, true)
+            val outputWriter = OutputStreamWriter(fileOutputStream)
+            outputWriter.write("takenImage:$mTakenImage")
+            outputWriter.append("\nmUri:$mUri")
+            outputWriter.append("\ntextFirstName:$textFirstName")
+            outputWriter.append("\ntextSurname:$textSurname")
+            outputWriter.append("\ntextEmail:$textEmail")
+            outputWriter.append("\ntextPhoneNumber:$textPhoneNumber")
+            outputWriter.append("\ngender:$gender")
+
+            outputWriter.close()
+//            showToast("created file")
+            return true
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return false
+        }
+
+    }
+
+    @Throws(IOException::class)
+    private fun createFile(fileName: String): File? {
+        LoadingBar(this@Onboard_activity).startLoading()
+        // Create an image file name
+        try {
+            val storageDir: File = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)!!
+            return File.createTempFile(
+                "$fileName", /* prefix */
+                ".txt", /* suffix */
+                storageDir /* directory */
+            ).apply {
+                // Save a file: path for use with ACTION_VIEW intents
+                currentFilePath = absolutePath
+//                showToast("$currentFilePath")
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return null
+        }
+
+    }
+
+
     private val submitListener = View.OnClickListener { view ->
-        when (view.getId()) {
+        when (view.id) {
             R.id.submit_btn -> {
+//                validate user input
                 if (validatorCheck()) {
+//                   create user object
                     var user = User(
                         mUri = mUri, takenImage = takenImage,
                         textFirstName = textFirstName, textSurname = textSurname,
                         textEmail = textEmail, textPhoneNumber = textPhoneNumber, gender = gender
                     )
+//                  create file name
+                    var params: String = textFirstName + textSurname
+                    var fileName = "$params.txt"
 
-                    val task = MyAsyncTask()
-                    task.execute("myEnrollFile")
+//                   create file
+                    var file: File = createFile(params)!!
+
+//                    uploading to s3 bucket
+                    if (file != null) {
+                        if (writeToFile(file)) {
+//                            showToast("uploading")
+                            uploadFile(
+                                file,
+                                fileName,
+                                this@Onboard_activity,
+                                BasicAWSCredentials(constants.ID, constants.KEY)
+                            )
+                        }
+                    }
+
                 } else {
-                    val dialog = MaterialDialog(this).title(text = "Error")
+                    val dialog = MaterialDialog(this).title(text = "Error!!")
                         .message(text = "All fields required! Please recheck entries")
+                    dialog.show()
                 }
             }
         }
     }
+
+
+    private fun uploadFile(uploadFile: File, uploadFileName: String, context: Context, basicAWSCredentials: BasicAWSCredentials) {
+
+        val transferObserver: TransferObserver = S3Uploader.upload(
+            context,
+            basicAWSCredentials,
+            constants.BUCKETNAME,
+            uploadFile,
+            uploadFileName
+        )
+
+        transferObserver.setTransferListener(UploadListener(this))
+
+    }
+
+    fun loading() {
+
+        val loading = LoadingBar(this@Onboard_activity)
+        loading.isSuccess()
+        val handler = Handler()
+        handler.postDelayed({
+            loading.isDismiss()
+            loading.finalScreen()
+            val inflater: LayoutInflater = layoutInflater
+            val view: View = inflater.inflate(R.layout.success_screen, null)
+            var proceedBtn: Button = view.findViewById(R.id.proced_btn)
+            proceedBtn.setOnClickListener {
+                loading.isDismiss()
+                setEditText()
+            }
+        }, 5000)
+    }
+
 }// onboard class end
+
+
+

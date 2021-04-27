@@ -12,23 +12,25 @@ import android.widget.TextView
 
 class Splash_screen : AppCompatActivity() {
 
-    private val SPLASH_TIME: Long = 4000
+    private val constants = Constants()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash_screen)
-
+//      animation to slide the images towards the center
         val topAnimation =  AnimationUtils.loadAnimation(this, R.anim.top_animation)
         val bottomAnimation =  AnimationUtils.loadAnimation(this, R.anim.bottom_animation)
 
+//      setting the images to the animation
         val topImg: ImageView = findViewById(R.id.img_logo)
         topImg.startAnimation(topAnimation)
 
         val bottomImg: ImageView = findViewById(R.id.img_logo1)
         bottomImg.startAnimation(bottomAnimation)
 
+//      delay the calling intent to change activity
         Handler().postDelayed(Runnable { val intent = Intent(Splash_screen@this, MainActivity::class.java)
             startActivity(intent)
-            finish() }, SPLASH_TIME)
+            finish() }, constants.SPLASH_TIME)
     }
 }

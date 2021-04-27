@@ -1,9 +1,9 @@
 <resources>
     <string name="app_name">EnrollApp</string>
-    <string name="firstname">First name</string>
-    <string name="surname">Surname</string>
-    <string name="email">Email</string>
-    <string name="phonenumber">Phone Number</string>
+    <string name="firstname">First name (eg: Jane)</string>
+    <string name="surname">Surname (eg: Doe)</string>
+    <string name="email">Email (eg: janedoe@gmail.com)</string>
+    <string name="phonenumber">Phone Number (eg: 08012345678)</string>
     <string name="gender">Gender</string>
     <string name="female">Female</string>
     <string name="male">Male</string>

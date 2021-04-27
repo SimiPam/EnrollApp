@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="myTheme" parent="MaterialAlertDialog.MaterialComponents.Title.Text"></style>
+    <style name="AlertDialogTitleText">
+        <item name="android:textColor">@android:color/black</item>
+    </style>
+</resources>
