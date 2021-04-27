@@ -1,23 +1,24 @@
 package com.example.enrollapp
 
+import java.util.Base64
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.os.AsyncTask
-import android.os.Bundle
-import android.os.Environment
-import android.os.Handler
+import android.os.*
 import android.provider.MediaStore
 import android.text.Html
+import android.util.Base64.DEFAULT
+import android.util.Base64.encodeToString
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import com.afollestad.materialdialogs.MaterialDialog
@@ -25,10 +26,7 @@ import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver
 import com.example.enrollapp.uitel.LoadingBar
 import timber.log.Timber
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
-import java.io.OutputStreamWriter
+import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -46,6 +44,7 @@ class Onboard_activity : AppCompatActivity() {
     private var imageUri: Uri? = null
     private var takenImage: Bitmap? = null
     private var mTakenImage: String? = null
+    private var mImageUri: String? = null
     private lateinit var mPhotoFile: File
     private lateinit var currentPhotoPath: String
     private lateinit var currentFilePath: String
@@ -204,25 +203,37 @@ class Onboard_activity : AppCompatActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == RESULT_OK) {
             if (requestCode == constants.REQUEST_IMAGE_CAPTURE) {
-                mTakenImage = mPhotoFile.absolutePath
+//                mTakenImage = mPhotoFile.absolutePath
                 takenImage = BitmapFactory.decodeFile(mPhotoFile.absolutePath)
-
+                mTakenImage = BitMapToString(takenImage!!)
                 btnCapture.setImageBitmap(takenImage)
 //                showToast(mTakenImage.toString())
             } else if (requestCode == constants.PICK_IMAGE) {
 
                 imageUri = data?.data
 //                showToast(imageUri.toString())
+                mImageUri = imageUri.toString()
                 btnCapture.setImageURI(imageUri)
+
             }
             captureButtonStateChange(0, 0)
         }
 
     }
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun BitMapToString(bitmap: Bitmap): String {
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        val imageBytes: ByteArray = byteArrayOutputStream.toByteArray()
+        return Base64.getEncoder().encodeToString(imageBytes)
+    }
+
+
+
 
     private val listener = View.OnClickListener { view ->
         when (view.getId()) {
@@ -284,15 +295,13 @@ class Onboard_activity : AppCompatActivity() {
     }
 
 
-
-
     private fun writeToFile(dstFile: File): Boolean {
         try {
             val fileOutputStream: FileOutputStream =
                 FileOutputStream(dstFile, true)
             val outputWriter = OutputStreamWriter(fileOutputStream)
             outputWriter.write("takenImage:$mTakenImage")
-            outputWriter.append("\nmUri:$mUri")
+            outputWriter.append("\nmUri:$mImageUri")
             outputWriter.append("\ntextFirstName:$textFirstName")
             outputWriter.append("\ntextSurname:$textSurname")
             outputWriter.append("\ntextEmail:$textEmail")
@@ -374,7 +383,12 @@ class Onboard_activity : AppCompatActivity() {
     }
 
 
-    private fun uploadFile(uploadFile: File, uploadFileName: String, context: Context, basicAWSCredentials: BasicAWSCredentials) {
+    private fun uploadFile(
+        uploadFile: File,
+        uploadFileName: String,
+        context: Context,
+        basicAWSCredentials: BasicAWSCredentials
+    ) {
 
         val transferObserver: TransferObserver = S3Uploader.upload(
             context,
